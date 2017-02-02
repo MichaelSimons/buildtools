@@ -1,4 +1,4 @@
-FROM chcosta/dotnetcore:ubuntu1404_coredeps_v1
+FROM build-prereqs:ubuntu-14.04-coredeps
 
 # Install the base toolchain we need to build anything (clang, cmake, make and the like).
 RUN apt-get update \
