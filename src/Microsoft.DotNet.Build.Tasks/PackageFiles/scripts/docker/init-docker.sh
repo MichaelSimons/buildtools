@@ -5,35 +5,39 @@ set -e
 # Stop script if unbound variable found (use ${var:-} if intentional)
 set -u
 
+say_err() {
+  printf "%b\n" "Error: $1" >&2
+}
+
 showHelp() {
     echo "Usage: $scriptName [OPTIONS] [IMAGE_NAME[:TAG|@DIGEST]]"
     echo
     echo "Initializes Docker by:"
     echo "  - Emitting the version of Docker that is being used"
-    echo "  - Cleaning up any containers and images that exist on the machine"
+    echo "  - Removing all containers and images that exist on the machine"
     echo "  - Ensuring the latest copy of the specified image exists on the machine"
     echo
     echo "Options:"
-    echo "  -r, --retry-count"
-    echo "  -w, --wait-factor"
+    echo "  -r, --retryCount"
+    echo "  -w, --waitFactor"
 
-    exit 1
+    exit 0
 }
 
 # Executes a command and retry up to 5 times if it fails.
 execute() {
     local count=0
     until "$@"; do
-      count=$(($count + 1))
-      if [ $count -lt $retries ]; then
-        local wait=$((waitFactor ** (count - 1))
-        echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
-        sleep $wait
-      else
         local exit=$?
-        echo "Retry $count/$retries exited $exit, no more retries left."
-        return $exit
-      fi
+        count=$(( $count + 1 ))
+        if [ $count -lt $retries ]; then
+            local wait=$(( waitFactor ** (( count - 1 )) ))
+            echo "Retry $count/$retries exited $exit, retrying in $wait seconds..."
+            sleep $wait
+        else    
+            say_err "Retry $count/$retries exited $exit, no more retries left."
+            return $exit
+        fi
     done
 
     return 0
@@ -41,7 +45,7 @@ execute() {
 
 scriptName=$0
 retries=5
-waitFactor=4
+waitFactor=6
 image=
 
 while [ $# -ne 0 ]; do
@@ -52,13 +56,17 @@ while [ $# -ne 0 ]; do
             showHelp
             exit 0
             ;;
-        -r|--retry-count)
+        -r|--retryCount)
             shift
-            $retries=$1
+            retries=$1
             ;;
-        -w|--wait-factor)
+        -w|--waitFactor)
             shift
-            $waitFactor="$1"
+            waitFactor=$1
+            ;;
+        -*)
+            say_err "Unknown option: $1"
+            exit 1
             ;;
         *)
             if [ ! -z "$image" ]; then
@@ -66,12 +74,16 @@ while [ $# -ne 0 ]; do
               exit 1
             fi
 
-            $image=$name
+            image="$1"
             ;;
     esac
 
     shift
 done
+
+echo $retries
+echo $waitFactor
+echo $image
 
 # Capture Docker version for diagnostic purposes
 docker --version
