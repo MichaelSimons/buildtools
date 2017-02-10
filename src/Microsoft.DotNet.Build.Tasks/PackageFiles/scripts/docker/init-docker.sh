@@ -6,7 +6,7 @@ set -e
 set -u
 
 showHelp() {
-    echo "Usage: $scriptName [OPTIONS] IMAGE_NAME[:TAG|@DIGEST]"
+    echo "Usage: $scriptName [OPTIONS] [IMAGE_NAME[:TAG|@DIGEST]]"
     echo
     echo "Initializes Docker by:"
     echo "  - Emitting the version of Docker that is being used"
@@ -42,9 +42,9 @@ execute() {
 scriptName=$0
 retries=5
 waitFactor=4
+image=
 
-while [ $# -ne 0 ]
-do
+while [ $# -ne 0 ]; do
     name=$1
     case $name in
         -h|--help)
@@ -61,8 +61,12 @@ do
             $waitFactor="$1"
             ;;
         *)
-            say_err "Unknown argument \`$name\`"
-            exit 1
+            if [ ! -z "$image" ]; then
+              say_err "Unknown argument \`$name\`"
+              exit 1
+            fi
+
+            $image=$name
             ;;
     esac
 
@@ -77,6 +81,7 @@ echo "Cleaning Docker Artifacts"
 ./cleanup-docker.sh
 echo
 
-image=$1
-echo "Pulling Docker image $image"
-execute docker pull $image
+if [ ! -z "$image" ]; then
+  echo "Pulling Docker image $image"
+  execute docker pull $image
+fi
