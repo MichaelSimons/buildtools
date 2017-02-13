@@ -104,4 +104,7 @@ cp -R "${__PACKAGES_DIR}"/[Mm]icro[Bb]uild.[Cc]ore/"${__MICROBUILD_VERSION}/buil
 # Temporary Hacks to fix couple of issues in the msbuild and roslyn nuget packages
 [ -e "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets" ] || mv "$__TOOLRUNTIME_DIR/Microsoft.CSharp.targets" "$__TOOLRUNTIME_DIR/Microsoft.CSharp.Targets"
 
+# Restoring packages is overwritting the MSBuild.runtimeconfig.json buildtools is laying down.  Re-copy buildtools version.
+cp -f "$__TOOLS_DIR/MSBuild.runtimeconfig.json" "$__TOOLRUNTIME_DIR/."
+
 exit 0

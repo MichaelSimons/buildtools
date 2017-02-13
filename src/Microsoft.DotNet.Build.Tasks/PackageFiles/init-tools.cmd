@@ -74,4 +74,7 @@ Robocopy "%PACKAGES_DIR%\MicroBuild.Core\%MICROBUILD_VERSION%\build\." "%TOOLRUN
 :: Copy Roslyn Compilers Over to ToolRuntime
 Robocopy "%PACKAGES_DIR%\Microsoft.Net.Compilers\%ROSLYNCOMPILERS_VERSION%\." "%TOOLRUNTIME_DIR%\net46\roslyn\." /E
 
+:: Restoring packages is overwritting the MSBuild.runtimeconfig.json buildtools is laying down.  Re-copy buildtools version.
+Robocopy "%BUILDTOOLS_PACKAGE_DIR%\MSBuild.runtimeconfig.json" "%TOOLRUNTIME_DIR%\."
+
 exit /b 0
